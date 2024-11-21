@@ -1,0 +1,216 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body {
+    height: 100%;
+    background: #030712 !important;
+    
+}
+
+.wallet-adapter-button-trigger {
+    background: rgb(100, 26, 230) !important;
+    border-radius: 8px !important;
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+}
+.wallet-adapter-dropdown-list,
+.wallet-adapter-button {
+    font-family: inherit !important;
+}
+
+.bg-base-300{
+    background-color: #000 !important;
+}
+
+.wizard-container{
+    width:100%;
+    margin-top: 50px !important;
+}
+
+.wizard-steps {
+    /* width: 50%; */
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #292C35;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    display: none; /* Initially hide all steps */
+}
+
+.wizard-steps.active {
+    display: block; /* Show only active step */
+}
+
+.wizard-steps h2 {
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: #888 !important;
+}
+
+.wizard-steps label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 8px;
+    color: #444;
+}
+
+input, textarea {
+    width: 100%;
+    padding: 12px 15px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+    background-color: #fff;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+input:focus, textarea:focus {
+    border-color: #A0D306;
+    outline: none;
+    box-shadow: 0 0 8px rgba(0, 123, 255, 0.2);
+}
+
+.smallfonts {
+    font-size: 12px;
+    color: #666;
+}
+
+.wizard-nav {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 20px;
+}
+
+
+/* Footer container for navigation buttons */
+.wizard-footer {
+    display: flex;
+    justify-content: space-between; /* Align buttons to opposite corners */
+    padding: 20px;
+    background-color: #1D202A ; /* Web3-style dark background */
+    border-top: 1px solid #333; /* Optional: border for footer separation */
+    position: relative;
+    bottom: 0;
+    width: 100%;
+}
+
+.wizard-info {
+    display: flex;
+    justify-content: space-between; /* Align buttons to opposite corners */
+    padding: 10px;
+    background-color: #323643 ; /* Web3-style dark background */
+    border-top: 1px solid #333; /* Optional: border for footer separation */
+    position: relative;
+    margin: 10 px;
+    width: 100%;
+   font-style: italic;
+   font-size: 13px;
+}
+
+.button {
+    padding: 12px 25px;
+    background-color: rgb(17, 24, 39) !important; /* Web3 style: brighter blue */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.button:hover {
+    background-color: #2563eb; /* Darker blue on hover */
+}
+
+.button:focus {
+    outline: none;
+}
+
+.button:disabled {
+    background-color: #ccc;
+    color: #888;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+
+
+   /* General styling */
+
+
+    /* Poll list container */
+    .poll-list {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        margin: 20px;
+    }
+
+    /* Individual poll card */
+    .poll-item {
+        background-color: #1D202A;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        margin: 15px;
+        padding: 20px;
+        width: 100%;
+        max-width: 320px;
+        /* Ensures a good size on mobile devices */
+        transition: transform 0.2s ease-in-out;
+    }
+
+    .poll-item:hover {
+        transform: translateY(-5px);
+        /* Adds a hover effect */
+    }
+
+    /* Poll title */
+    .poll-item h3 {
+        font-size: 1.5rem;
+        color: #34495e;
+        margin-bottom: 10px;
+    }
+
+    /* Poll details */
+    .poll-item p {
+        font-size: 1rem;
+        color: #555;
+        margin-bottom: 8px;
+    }
+
+    .poll-item strong {
+        color: #2980b9;
+    }
+
+    /* Buy Now button */
+    .poll-item button {
+        background-color: #3498db;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 1rem;
+        transition: background-color 0.3s ease;
+    }
+
+    .poll-item button:disabled {
+        background-color: #bdc3c7;
+        cursor: not-allowed;
+    }
+
+    .poll-item button:hover:not(:disabled) {
+        background-color: #2980b9;
+    }
+
+    /* Responsive design */
+    @media (max-width: 768px) {
+        .poll-item {
+            max-width: 100%;
+            margin: 10px 0;
+        }
+    }
