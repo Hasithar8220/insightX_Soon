@@ -1,5 +1,6 @@
 "use client";
 import { useState, ChangeEvent } from 'react';
+import CryptoJS from "crypto-js";
 
 export default function SurveyBuilderWizard() {
   const [step, setStep] = useState<number>(1);
@@ -61,6 +62,48 @@ export default function SurveyBuilderWizard() {
     }
   };
 
+  const savePoll = async () => {
+    setLoading(true);
+    try {
+
+       // Hash the poll object using SHA-256
+    const pollString = JSON.stringify(formData);
+    const hash = CryptoJS.SHA256(pollString).toString(CryptoJS.enc.Hex);
+
+    const poll = {
+      ...formData,
+      pollhash: hash,
+    };
+
+
+      // const response = await fetch('/api/savePoll', {
+      //   method: 'POST',
+      //   headers: {
+      //     'Content-Type': 'application/json',
+      //   },
+      //   body: JSON.stringify({
+      //    poll
+      //   }),
+      // });
+  
+      // const data = await response.json();
+
+
+      // if (data.success) {
+      //   alert('Poll successfully submitted!');
+      // } else {
+      //   alert('Error submitting poll. Please try again.');
+      // }
+
+
+    } catch (error) {
+      console.error('Error:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+
   const nextStep = () => setStep((prev) => prev + 1);
   const prevStep = () => setStep((prev) => prev - 1);
 
@@ -117,7 +160,61 @@ export default function SurveyBuilderWizard() {
             Next
           </button>
         </div>
+      )}{step === 3 && (
+        <div className="wizard-steps active">
+          <h2>Step 3: Complete</h2>
+          
+          <label>Recommended Sample Size</label>
+          <input
+            type="number"
+            name="sampleSize"
+            placeholder="100"
+            value={formData.sampleSize}
+            onChange={handleChange}
+            required
+          />
+          
+          <label>Recommended Audience</label>
+          <input
+            type="text"
+            name="audience"
+            placeholder="Tech Startups"
+            value={formData.audience}
+            onChange={handleChange}
+            required
+          />
+          
+          <label>Price</label>
+          <input
+            type="number"
+            name="price"
+            placeholder="25"
+            value={formData.price}
+            onChange={handleChange}
+            required
+          />
+          
+          {formData.publicLink && (
+            <div className="wizard-info">
+              <p>{formData.publicLink}</p>
+            </div>
+          )}
+      
+          <div className="wizard-footer">
+            <button className="button" onClick={prevStep}>
+              Back
+            </button>
+            <button
+              className="button"
+              onClick={savePoll}
+              disabled={!formData.sampleSize || !formData.audience || !formData.price}
+            >
+              Submit Poll
+            </button>
+          </div>
+        </div>
       )}
+      
     </div>
   );
 }
