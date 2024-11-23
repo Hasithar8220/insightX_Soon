@@ -64,7 +64,7 @@ const MarketplaceFeature = () => {
                         {poll.title && <h3>{poll.title}</h3>}
                         {poll.description && <p>{poll.description}</p>}
                         <p>
-                          <strong>Price:</strong> {poll.price} TRX
+                          <strong>Price:</strong> {poll.price} SOL
                         </p>
                         <p>
                           <strong>For Sale:</strong> {poll.isForSale ? 'Yes' : 'No'}

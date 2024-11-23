@@ -1,6 +1,9 @@
 "use client";
 import { useState, ChangeEvent } from 'react';
 import CryptoJS from "crypto-js";
+import { useWallet } from '@solana/wallet-adapter-react';
+import { Connection, Transaction, TransactionInstruction, PublicKey } from '@solana/web3.js';
+
 
 export default function SurveyBuilderWizard() {
   const [step, setStep] = useState<number>(1);
@@ -14,6 +17,7 @@ export default function SurveyBuilderWizard() {
     audience: string;
     price: string;
     publicLink: string;
+    pollHash: string;
   }>({
     topic: '',
     objective: '',
@@ -23,7 +27,11 @@ export default function SurveyBuilderWizard() {
     audience: '',
     price: '',
     publicLink: '',
+    pollHash: ''
   });
+
+  const { publicKey, sendTransaction } = useWallet(); // Call useWallet at the top level
+
 
   const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -62,46 +70,66 @@ export default function SurveyBuilderWizard() {
     }
   };
 
+ 
   const savePoll = async () => {
     setLoading(true);
     try {
+        if (!publicKey) {
+            alert("Please connect your wallet");
+            return;
+        }
 
-       // Hash the poll object using SHA-256
-    const pollString = JSON.stringify(formData);
-    const hash = CryptoJS.SHA256(pollString).toString(CryptoJS.enc.Hex);
+        // Step 1: Hash the poll data
+        const pollString = JSON.stringify(formData);
+        const hash = CryptoJS.SHA256(pollString).toString(CryptoJS.enc.Hex);
 
-    const poll = {
-      ...formData,
-      pollhash: hash,
-    };
+        const publicLink = `https://insightx.live/polls?id=${hash}`;
+        formData.publicLink = publicLink;
+        formData.pollHash = hash;
 
+        const connection = new Connection('https://rpc.testnet.soo.network/rpc');
+        const programId = new PublicKey('75RE6pzbiFtf7a4Yo5KL96PFMFCVF39AVmhzQdS2H6qm');
 
-      // const response = await fetch('/api/savePoll', {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //   },
-      //   body: JSON.stringify({
-      //    poll
-      //   }),
-      // });
-  
-      // const data = await response.json();
+        // Step 2: Prepare instruction data
+        const instructionType = Buffer.from([0]); // Instruction type "create poll"
+        const pollHashBytes = Buffer.from(hash, 'hex'); // 32-byte SHA-256 hash
 
+        const price = Buffer.alloc(8); // 8-byte price (UInt64)
+        price.writeBigUInt64LE(BigInt(formData.price), 0); // Ensure the price is encoded as UInt64 little-endian
 
-      // if (data.success) {
-      //   alert('Poll successfully submitted!');
-      // } else {
-      //   alert('Error submitting poll. Please try again.');
-      // }
+        // Ensure the total length of instructionData is 42 bytes
+        const padding = Buffer.alloc(1); // Add 1 byte of padding to make the length 42
+        const instructionData = Buffer.concat([instructionType, pollHashBytes, price, padding]);
 
+        console.log('instructionData length:', instructionData.length); // Ensure it's 42 bytes
+
+        // Step 3: Create transaction instruction
+        const instruction = new TransactionInstruction({
+            programId,
+            data: instructionData,
+            keys: [
+                { pubkey: publicKey, isSigner: true, isWritable: true },
+            ],
+        });
+
+        const transaction = new Transaction().add(instruction);
+
+        // Step 4: Send transaction
+        const signature = await sendTransaction(transaction, connection);
+        const res= await connection.confirmTransaction(signature, 'processed');
+
+        console.log(signature,res);
+
+        alert("Poll successfully submitted!");
 
     } catch (error) {
-      console.error('Error:', error);
+        console.error("Error submitting poll:", error);
+        alert("An error occurred. Please try again.");
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
-  };
+};
+
   
 
   const nextStep = () => setStep((prev) => prev + 1);
@@ -118,10 +146,10 @@ export default function SurveyBuilderWizard() {
       <span className="step-label">Step1:</span> Type a topic and objective to retrieve a suitable poll question via OpenAI (GPT)
     </li>
     <li>
-      <span className="step-label">Step2:</span> Copy the public URL for the poll to feed responses from your audience
+      <span className="step-label">Step2:</span> Review and confirm the poll
     </li>
     <li>
-      <span className="step-label">Step3:</span> Set a price, target market, and list your poll in a marketplace
+      <span className="step-label">Step3:</span> Set a price, target market, and list your poll in a marketplace. Copy the public URL to share with Audeince
     </li>
   </ol>
 </div>

@@ -1,46 +1,51 @@
-import { NextResponse } from 'next/server';
-import { Configuration, OpenAIApi, ChatCompletionRequestMessage } from 'openai';
+import type { NextApiRequest, NextApiResponse } from 'next';
+import MySQLService from '../../services/MySQLService';
 
+// const handler = async (req: NextApiRequest, res: NextApiResponse) => {
+//   const db = new MySQLService();
 
+//   // Helper function to get MySQL datetime format
+//   const getMySQLDatetime = (date: Date): string => {
+//     return date.toISOString().slice(0, 19).replace('T', ' ');
+//   };
 
-const configuration = new Configuration({
-  apiKey: process.env.CGPT_APIKEY,
-});
+  // try {
+  //   if (req.method === 'POST') {
+  //     const json = req.body;
 
-console.log(process.env.CGPT_APIKEY);
+  //     // Validate the required fields
+  //     if (!json.title || !json.description || !json.pollhash) {
+  //       return res.status(400).json({ success: false, message: 'Missing required fields' });
+  //     }
 
-const openai = new OpenAIApi(configuration);
+  //     const d = getMySQLDatetime(new Date());
 
-export async function POST(req: Request) {
-  try {
-    const { topic, objective } = await req.json();
-    console.log(topic);
+  //     // Create the public link
+  //     json.publiclink = `https://insightx.live/polls?id=${json.pollhash}`;
 
-    const messages: ChatCompletionRequestMessage[] = [
-      {
-        role: 'user',
-        content: `I need a single poll question STRICTLY in JSON format, in a given poll topic and objectives. 
-        POLL topic: ${topic}. POLL objectives: ${objective}.
-        Please refer to this example: {"question":"What percentage of your workforce is currently working remotely?","Options":["0-25%", "26-50%", "51-75%", "76-100%"]}`,
-      },
-    ];
+  //     // Store record in the database
+  //     const sql = `
+  //       INSERT INTO insights (title, description, hash, publiclink, jsonobj, datetime) 
+  //       VALUES (?, ?, ?, ?, ?, ?)
+  //     `;
+  //     const results = await db.runquery(sql, [
+  //       json.title,
+  //       json.description,
+  //       json.pollHash,
+  //       json.publicLink,
+  //       JSON.stringify(json),
+  //       d,
+  //     ]);
 
-    const response = await openai.createChatCompletion({
-      model: 'gpt-3.5-turbo',
-      messages,
-      temperature: 1,
-    });
+  //     res.status(200).json({ success: true, data: results });
+  //   } else {
+  //     res.setHeader('Allow', ['POST']);
+  //     res.status(405).json({ success: false, message: 'Method Not Allowed' });
+  //   }
+  // } catch (error: any) {
+  //   console.error('Error saving insight:', error.message || error);
+  //   res.status(500).json({ success: false, message: 'Internal Server Error' });
+  // }
+//};
 
-    const result = response.data.choices[0].message?.content || '{}';
-    return NextResponse.json({ success: true, poll: JSON.parse(result) });
-  } catch (error: unknown) {
-    // Safely handle the error by asserting its structure
-    if (error instanceof Error) {
-      console.error('Error generating poll:', error.message);
-      return NextResponse.json({ success: false, error: error.message }, { status: 500 });
-    } else {
-      console.error('Unknown error:', error);
-      return NextResponse.json({ success: false, error: 'An unknown error occurred.' }, { status: 500 });
-    }
-  }
-}
+//export default handler;
