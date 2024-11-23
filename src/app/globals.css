@@ -24,20 +24,19 @@ body {
     background-color: #000 !important;
 }
 
-.wizard-container{
-    width:100%;
+.wizard-container {
+    width: 100%;
     margin-top: 50px !important;
 }
 
 .wizard-steps {
-    /* width: 50%; */
     margin: 0 auto;
     padding: 20px;
-    background-color: #292C35;
+    background-color: #21242B; /* Darker Web3-style background */
     border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     display: none; /* Initially hide all steps */
-    color: #888 !important;
+    color: #B0B6B9 !important; /* Light gray text for readability */
 }
 
 .wizard-steps.active {
@@ -47,38 +46,37 @@ body {
 .wizard-steps h2 {
     font-size: 24px;
     margin-bottom: 20px;
-    color: #888 !important;
+    color: #E1E1E1 !important; /* Lightened header text */
 }
 
 .wizard-steps label {
     display: block;
     font-weight: bold;
     margin-bottom: 8px;
-    color: #444;
+    color: #A5A9B3; /* Slightly lighter label color */
 }
-
-
 
 input, textarea {
     width: 100%;
     padding: 12px 15px;
     margin-bottom: 15px;
-    border: 1px solid #ccc;
+    border: 1px solid #555; /* Darker border */
     border-radius: 5px;
     font-size: 16px;
-    background-color: #fff;
-    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+    background-color: #1F2227; /* Dark input field background */
+    color: #E1E1E1; /* Light text for readability */
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 input:focus, textarea:focus {
-    border-color: #A0D306;
+    border-color: #4B6EF2; /* Web3-style highlight color */
     outline: none;
-    box-shadow: 0 0 8px rgba(0, 123, 255, 0.2);
+    box-shadow: 0 0 8px rgba(75, 110, 242, 0.2); /* Blue glow effect */
 }
 
 .smallfonts {
     font-size: 12px;
-    color: #666;
+    color: #A6A9B2;
 }
 
 .wizard-nav {
@@ -86,7 +84,6 @@ input:focus, textarea:focus {
     justify-content: flex-end;
     margin-top: 20px;
 }
-
 
 /* Footer container for navigation buttons */
 .wizard-footer {
@@ -107,17 +104,18 @@ input:focus, textarea:focus {
     background-color: #323643 ; /* Web3-style dark background */
     border-top: 1px solid #333; /* Optional: border for footer separation */
     position: relative;
-    margin: 10 px;
+    margin: 10px;
     width: 100%;
-   font-style: italic;
-   font-size: 13px;
+    font-style: italic;
+    font-size: 13px;
+    color: #A5A9B3; /* Slightly lighter text for information */
 }
 
 .button {
     padding: 12px 25px;
-    background-color: rgb(17, 24, 39) !important; /* Web3 style: brighter blue */
-    color: white;
-    border: none;
+    background-color: #1F2227 !important; /* Dark background */
+    color: #B0B6B9;
+    border: 1px solid #4B6EF2; /* Web3-style border */
     border-radius: 5px;
     font-size: 16px;
     cursor: pointer;
@@ -126,7 +124,8 @@ input:focus, textarea:focus {
 }
 
 .button:hover {
-    background-color: #2563eb; /* Darker blue on hover */
+    background-color: #4B6EF2; /* Lighter blue hover */
+    border-color: #3B5BD9; /* Slightly darker border on hover */
 }
 
 .button:focus {
@@ -134,87 +133,156 @@ input:focus, textarea:focus {
 }
 
 .button:disabled {
-    background-color: #ccc;
+    background-color: #555;
     color: #888;
     cursor: not-allowed;
     opacity: 0.6;
 }
 
+/* General styling */
 
+/* Poll list container */
+.poll-list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin: 20px;
+}
 
-   /* General styling */
+/* Individual poll card */
+.poll-item {
+    background-color: #1D202A;
+    border: 1px solid #444;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    margin: 15px;
+    padding: 20px;
+    width: 100%;
+    max-width: 320px;
+    /* Ensures a good size on mobile devices */
+    transition: transform 0.2s ease-in-out;
+}
 
+.poll-item:hover {
+    transform: translateY(-5px);
+    /* Adds a hover effect */
+}
 
-    /* Poll list container */
-    .poll-list {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        margin: 20px;
-    }
+/* Poll title */
+.poll-item h3 {
+    font-size: 1.5rem;
+    color: #E1E1E1;
+    margin-bottom: 10px;
+}
 
-    /* Individual poll card */
+/* Poll details */
+.poll-item p {
+    font-size: 1rem;
+    color: #B0B6B9;
+    margin-bottom: 8px;
+}
+
+.poll-item strong {
+    color: #4B6EF2; /* Web3-style link color */
+}
+
+/* Buy Now button */
+.poll-item button {
+    background-color: #4B6EF2;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s ease;
+}
+
+.poll-item button:disabled {
+    background-color: #7A8B99;
+    cursor: not-allowed;
+}
+
+.poll-item button:hover:not(:disabled) {
+    background-color: #3B5BD9;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
     .poll-item {
-        background-color: #1D202A;
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        margin: 15px;
-        padding: 20px;
-        width: 100%;
-        max-width: 320px;
-        /* Ensures a good size on mobile devices */
-        transition: transform 0.2s ease-in-out;
+        max-width: 100%;
+        margin: 10px 0;
     }
+}
 
-    .poll-item:hover {
-        transform: translateY(-5px);
-        /* Adds a hover effect */
-    }
 
-    /* Poll title */
-    .poll-item h3 {
-        font-size: 1.5rem;
-        color: #34495e;
-        margin-bottom: 10px;
-    }
+   /* Web3 Inspired Styling for the Message Box */
 
-    /* Poll details */
-    .poll-item p {
-        font-size: 1rem;
-        color: #555;
-        margin-bottom: 8px;
-    }
 
-    .poll-item strong {
-        color: #2980b9;
-    }
+.web3-msg-box ol {
+    margin-left: 20px;
+    padding-left: 0;
+}
 
-    /* Buy Now button */
-    .poll-item button {
-        background-color: #3498db;
-        color: white;
-        border: none;
-        padding: 10px 20px;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 1rem;
-        transition: background-color 0.3s ease;
-    }
+.web3-msg-box li {
+    margin-bottom: 10px;
+    font-size: 1rem;
+    line-height: 1.6;
+}
 
-    .poll-item button:disabled {
-        background-color: #bdc3c7;
-        cursor: not-allowed;
-    }
+.step-label {
+    font-weight: bold;
+    color: #4B6EF2; /* Web3 blue for steps */
+    background-color: rgba(75, 110, 242, 0.1); /* Light blue background */
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-right: 5px;
+}
 
-    .poll-item button:hover:not(:disabled) {
-        background-color: #2980b9;
-    }
-
-    /* Responsive design */
-    @media (max-width: 768px) {
-        .poll-item {
-            max-width: 100%;
-            margin: 10px 0;
-        }
-    }
+.web3-msg-box {
+    background: linear-gradient(45deg, #0f2027, #203a43, #2c5364);
+    color: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    margin-bottom: 20px;
+    font-family: 'Roboto', sans-serif;
+    text-align: center;
+    border: 1px solid #00ff99;
+    font-size: 16px;
+  }
+  
+  .web3-msg-box h3 {
+    font-size: 24px;
+    margin-bottom: 10px;
+  }
+  
+  .web3-msg-box ol {
+    text-align: left;
+    font-size: 14px;
+  }
+  
+  .web3-msg-box li {
+    margin-bottom: 10px;
+  }
+  
+  button.button {
+    background: linear-gradient(45deg, #ff4b2b, #ff416c);
+    color: white;
+    padding: 12px 20px;
+    font-size: 16px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  
+  button.button:hover {
+    background: linear-gradient(45deg, #ff416c, #ff4b2b);
+  }
+  
+  button.button:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+  }
+  

@@ -109,6 +109,25 @@ export default function SurveyBuilderWizard() {
 
   return (
     <div className="wizard-container">
+
+{/* Web3 Styled Message Box */}
+<div className="web3-msg-box">
+  <h3>Survey Builder Instructions</h3>
+  <ol>
+    <li>
+      <span className="step-label">Step1:</span> Type a topic and objective to retrieve a suitable poll question via OpenAI (GPT)
+    </li>
+    <li>
+      <span className="step-label">Step2:</span> Copy the public URL for the poll to feed responses from your audience
+    </li>
+    <li>
+      <span className="step-label">Step3:</span> Set a price, target market, and list your poll in a marketplace
+    </li>
+  </ol>
+</div>
+
+
+
       {step === 1 && (
         <div className="wizard-steps active">
           <h2>Step 1: Create Poll</h2>
@@ -141,7 +160,7 @@ export default function SurveyBuilderWizard() {
       )}
       {step === 2 && (
         <div className="wizard-steps active">
-          <h2>Step 2: Poll Details</h2>
+          <h2>Step 2: Poll Details. Copy public url</h2>
           <label>Poll Question</label>
           <p>
   {formData.pollQuestion}
@@ -162,7 +181,7 @@ export default function SurveyBuilderWizard() {
         </div>
       )}{step === 3 && (
         <div className="wizard-steps active">
-          <h2>Step 3: Complete</h2>
+          <h2>Step 3: List in a MarketPlace</h2>
           
           <label>Recommended Sample Size</label>
           <input
