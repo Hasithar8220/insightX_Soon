@@ -219,25 +219,19 @@ input:focus, textarea:focus {
    /* Web3 Inspired Styling for the Message Box */
 
 
-.web3-msg-box ol {
-    margin-left: 20px;
-    padding-left: 0;
-}
 
-.web3-msg-box li {
-    margin-bottom: 10px;
-    font-size: 1rem;
-    line-height: 1.6;
-}
-
-.step-label {
+   .step-label {
     font-weight: bold;
-    color: #4B6EF2; /* Web3 blue for steps */
-    background-color: rgba(75, 110, 242, 0.1); /* Light blue background */
-    padding: 2px 6px;
-    border-radius: 4px;
+    color: #00ff99; /* Neon Web3 green */
+    background: linear-gradient(45deg, #00ff99, #007f5f); /* Gradient to match Web3 theme */
+    padding: 3px 8px;
+    border-radius: 5px;
     margin-right: 5px;
+    font-size: 0.9rem;
+    text-transform: uppercase; /* Optional for emphasis */
+    box-shadow: 0 2px 4px rgba(0, 255, 153, 0.4); /* Subtle glow effect */
 }
+
 
 .web3-msg-box {
     background: linear-gradient(45deg, #0f2027, #203a43, #2c5364);
