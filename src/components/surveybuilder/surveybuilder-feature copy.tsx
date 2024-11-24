@@ -2,7 +2,6 @@
 import { useState, ChangeEvent } from 'react';
 import CryptoJS from "crypto-js";
 import { useWallet } from '@solana/wallet-adapter-react';
-import { SYSVAR_RENT_PUBKEY } from '@solana/web3.js'; // Make sure this import exists at the top of your file
 import { Connection, PublicKey, Transaction, TransactionInstruction, Keypair, SystemProgram } from '@solana/web3.js';
 
 
@@ -74,6 +73,7 @@ export default function SurveyBuilderWizard() {
 
  
   const savePoll = async () => {
+
     setLoading(true);
 
     try {
@@ -82,69 +82,51 @@ export default function SurveyBuilderWizard() {
             return;
         }
 
+       
+       
+        
         const connection = new Connection('https://rpc.testnet.soo.network/rpc');
         const programId = new PublicKey('75RE6pzbiFtf7a4Yo5KL96PFMFCVF39AVmhzQdS2H6qm');
 
-        // Step 1: Hash the poll data
-        const pollString = JSON.stringify(formData);
-        const hash = CryptoJS.SHA256(pollString).toString(CryptoJS.enc.Hex);
+         // Step 1: Hash the poll data
+         const pollString = JSON.stringify(formData);
+         const hash = CryptoJS.SHA256(pollString).toString(CryptoJS.enc.Hex);
+ 
 
         // Step 2: Prepare instruction data
         const instructionType = Buffer.from([0]); // Instruction type "create poll"
         const pollHashBytes = Buffer.from(hash, 'hex'); // 32-byte SHA-256 hash
 
         const price = Buffer.alloc(8); // 8-byte price (UInt64)
-        price.writeBigUInt64LE(BigInt(formData.price), 0); // Encode as UInt64 little-endian
+        price.writeBigUInt64LE(BigInt(formData.price), 0); // Ensure the price is encoded as UInt64 little-endian
 
+        // Ensure the total length of instructionData is 41 bytes (32 bytes hash + 8 bytes price + 1 byte for instruction type)
         const instructionData = Buffer.concat([instructionType, pollHashBytes, price]);
 
         console.log('instructionData length:', instructionData.length, instructionData); // Ensure it's 41 bytes
 
-        console.log('Instruction type:', instructionType);
-console.log('Poll Hash:', pollHashBytes);
-console.log('Price:', price);
-console.log('Full Instruction Data:', instructionData);
-
-
-        // Step 3: Create rent-exempt poll account
-        const space = 77; // Replace with your program's data size
-        const rentExemptLamports = await connection.getMinimumBalanceForRentExemption(space);
-
-        const pollAccount = Keypair.generate(); // Generate poll account keypair
-
-        // Step 4: Create transaction instruction
+        // Step 3: Create transaction instruction
         const instruction = new TransactionInstruction({
             programId,
             data: instructionData,
             keys: [
-              { pubkey: publicKey, isSigner: true, isWritable: true }, // Payer (sender)
-              { pubkey: pollAccount.publicKey, isSigner: false, isWritable: true }, // Poll account
-              { pubkey: SYSVAR_RENT_PUBKEY, isSigner: false, isWritable: false }, // Rent sysvar
-          ]
-          ,
+                { pubkey: publicKey, isSigner: true, isWritable: true },
+            ],
         });
 
-        // Step 5: Create and send transaction
-        const transaction = new Transaction().add(
-            SystemProgram.createAccount({
-                fromPubkey: publicKey,
-                newAccountPubkey: pollAccount.publicKey,
-                lamports: rentExemptLamports,
-                space: space,
-                programId,
-            }),
-            instruction
-        );
+        const transaction = new Transaction().add(instruction);
 
-        const signature = await sendTransaction(transaction, connection, { signers: [pollAccount] });
-        await connection.confirmTransaction(signature, 'processed');
+        // Step 4: Send transaction
+        const signature = await sendTransaction(transaction, connection);
+        const res = await connection.confirmTransaction(signature, 'processed');
 
-        console.log('Transaction Signature:', signature);
+        console.log(signature, res);
 
-        const publicLink = `https://insightx.live/polls?id=${hash}`;
+         const publicLink = `https://insightx.live/polls?id=${hash}`;
         formData.publicLink = publicLink;
 
         alert("Poll successfully submitted!");
+
     } catch (error) {
         console.error("Error submitting poll:", error);
         alert("An error occurred. Please try again.");
@@ -152,7 +134,6 @@ console.log('Full Instruction Data:', instructionData);
         setLoading(false);
     }
 };
-
 
   const nextStep = () => setStep((prev) => prev + 1);
   const prevStep = () => setStep((prev) => prev - 1);

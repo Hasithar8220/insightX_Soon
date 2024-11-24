@@ -44,6 +44,7 @@ const MarketplaceFeature = () => {
     const view = new DataView(buffer.buffer);
     const pollCount = view.getUint8(0); // Number of polls
   
+    console.log('Poll Count',pollCount);
     // Assuming poll hash is 32 bytes long (adjust as needed)
     const pollSize = 32 + 4 + 1; // hash (32 bytes) + price (4 bytes) + isForSale (1 byte)
   
