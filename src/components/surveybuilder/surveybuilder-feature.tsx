@@ -2,7 +2,8 @@
 import { useState, ChangeEvent } from 'react';
 import CryptoJS from "crypto-js";
 import { useWallet } from '@solana/wallet-adapter-react';
-import { Connection, Transaction, TransactionInstruction, PublicKey } from '@solana/web3.js';
+import { Connection, PublicKey, Transaction, TransactionInstruction, Keypair, SystemProgram } from '@solana/web3.js';
+
 
 
 export default function SurveyBuilderWizard() {
@@ -97,11 +98,10 @@ export default function SurveyBuilderWizard() {
         const price = Buffer.alloc(8); // 8-byte price (UInt64)
         price.writeBigUInt64LE(BigInt(formData.price), 0); // Ensure the price is encoded as UInt64 little-endian
 
-        // Ensure the total length of instructionData is 42 bytes
-        const padding = Buffer.alloc(1); // Add 1 byte of padding to make the length 42
-        const instructionData = Buffer.concat([instructionType, pollHashBytes, price, padding]);
+        // Ensure the total length of instructionData is 41 bytes (32 bytes hash + 8 bytes price + 1 byte for instruction type)
+        const instructionData = Buffer.concat([instructionType, pollHashBytes, price]);
 
-        console.log('instructionData length:', instructionData.length); // Ensure it's 42 bytes
+        console.log('instructionData length:', instructionData.length, instructionData); // Ensure it's 41 bytes
 
         // Step 3: Create transaction instruction
         const instruction = new TransactionInstruction({
@@ -116,9 +116,9 @@ export default function SurveyBuilderWizard() {
 
         // Step 4: Send transaction
         const signature = await sendTransaction(transaction, connection);
-        const res= await connection.confirmTransaction(signature, 'processed');
+        const res = await connection.confirmTransaction(signature, 'processed');
 
-        console.log(signature,res);
+        console.log(signature, res);
 
         alert("Poll successfully submitted!");
 
@@ -129,8 +129,6 @@ export default function SurveyBuilderWizard() {
         setLoading(false);
     }
 };
-
-  
 
   const nextStep = () => setStep((prev) => prev + 1);
   const prevStep = () => setStep((prev) => prev - 1);

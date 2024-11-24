@@ -232,6 +232,18 @@ input:focus, textarea:focus {
     box-shadow: 0 2px 4px rgba(0, 255, 153, 0.4); /* Subtle glow effect */
 }
 
+.step-label-red {
+    font-weight: bold;
+    color: #fff; /* Neon Web3 green */
+    background: linear-gradient(45deg, #ff4b2b, #ff416c); /* Gradient to match Web3 theme */
+    padding: 3px 8px;
+    border-radius: 5px;
+    margin-right: 5px;
+    font-size: 0.9rem;
+    text-transform: uppercase; /* Optional for emphasis */
+    box-shadow: 0 2px 4px rgba(0, 255, 153, 0.4); /* Subtle glow effect */
+}
+
 
 .web3-msg-box {
     background: linear-gradient(45deg, #0f2027, #203a43, #2c5364);
