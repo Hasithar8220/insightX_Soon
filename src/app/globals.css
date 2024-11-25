@@ -218,7 +218,10 @@ input:focus, textarea:focus {
 
    /* Web3 Inspired Styling for the Message Box */
 
-
+.smallitalics{
+    font-size: 11px !important;
+    font-style: italic !important;
+}
 
    .step-label {
     font-weight: bold;

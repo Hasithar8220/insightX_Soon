@@ -1,103 +1,114 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { Connection, PublicKey } from '@solana/web3.js';
-import * as bs58 from 'bs58'; // Assuming you're using Base58 encoding for poll hashes
+import React, { useState, useEffect } from "react";
+import { Connection, PublicKey } from "@solana/web3.js";
+import { useWallet } from "@solana/wallet-adapter-react";
+import * as bs58 from "bs58";
 
-
+// Define the Poll structure
 interface Poll {
-  poll_hash: string;
+  pollHash: Uint8Array;
+  owner: PublicKey;
   price: number;
   isForSale: boolean;
+  analyticsCount: number;
 }
 
-// Component code remains the same
+function deserializePoll(data: Uint8Array): Poll | null {
+  if (data.length !== 77) return null;
+
+  const pollHash = data.slice(0, 32);
+  const owner = new PublicKey(data.slice(32, 64));
+
+  // Extract 64-bit unsigned integer (price) in little-endian format
+  const priceLamportsBuffer = Buffer.from(data.slice(64, 72));
+  const priceLamports = BigInt('0x' + priceLamportsBuffer.reverse().toString('hex')); // Reverse the buffer for little-endian
+
+  // Extract analytics count
+  const analyticsCountBuffer = Buffer.from(data.slice(73, 77));
+  const analyticsCount = BigInt('0x' + analyticsCountBuffer.reverse().toString('hex')); // Reverse the buffer for little-endian
+
+  console.log('Price lamports:', priceLamports); // Log price in lamports
+  console.log('Analytics count:', analyticsCount);
+
+  const isForSale = data[72] !== 0;
+
+  // Convert lamports to SOL (using BigInt)
+  const priceSOLBigInt = priceLamports / BigInt(1e9);
+  const priceSOL = parseFloat(priceSOLBigInt.toString());
+
+  console.log('Price in SOL:', priceSOL);
+
+  return {
+    pollHash,
+    owner,
+    price: parseFloat(priceSOL.toFixed(2)), // Round to 2 decimals for display
+    isForSale,
+    analyticsCount: Number(analyticsCount),
+  };
+}
+
+
+
+
+// Fetch polls for sale from accounts
+async function getPollsForSale(
+  connection: Connection,
+  programId: PublicKey,
+  userPublicKey: PublicKey
+): Promise<Poll[]> {
+  const accounts = await connection.getProgramAccounts(programId, {
+    filters: [
+      { memcmp: { offset: 32, bytes: userPublicKey.toBase58() } }, // Owner filter
+    ],
+  });
+
+  const polls: Poll[] = [];
+  for (const account of accounts) {
+    const poll = deserializePoll(account.account.data);
+    console.log(poll);
+    if (poll && poll.isForSale) {
+      polls.push(poll);
+    }
+  }
+
+  console.log(polls);
+  return polls;
+}
+
 const MarketplaceFeature = () => {
+  const { publicKey } = useWallet(); // Solana wallet adapter
   const [polls, setPolls] = useState<Poll[]>([]);
   const [loadingPolls, setLoadingPolls] = useState(true);
+  const [error, setError] = useState<string | null>(null); // Error state
 
   useEffect(() => {
-    const connection = new Connection('https://rpc.testnet.soo.network/rpc');
-    const programId = new PublicKey('75RE6pzbiFtf7a4Yo5KL96PFMFCVF39AVmhzQdS2H6qm');
+    if (!publicKey) {
+      console.log("No wallet connected. Cannot load polls.");
+      setLoadingPolls(false);
+      return;
+    }
+
+    const connection = new Connection("https://rpc.testnet.soo.network/rpc");
+    const programId = new PublicKey("75RE6pzbiFtf7a4Yo5KL96PFMFCVF39AVmhzQdS2H6qm");
 
     const fetchPolls = async () => {
       try {
-        const accountInfo = await connection.getAccountInfo(programId);
-
-        console.log(accountInfo);
-
-        if (accountInfo?.data) {
-          const decodedPolls = decodePollsData(accountInfo.data);
-          setPolls(decodedPolls);
-        }
+        const fetchedPolls = await getPollsForSale(connection, programId, publicKey);
+        setPolls(fetchedPolls);
       } catch (error) {
-        console.error('Error fetching polls:', error);
+        console.error("Error fetching polls:", error);
+        setError("Failed to load polls. Please try again later.");
+      } finally {
+        setLoadingPolls(false);
       }
-      setLoadingPolls(false);
     };
 
     fetchPolls();
-  }, []);
+  }, [publicKey]);
 
- 
-  const decodePollsData = (buffer: Buffer): Poll[] => {
-    const view = new DataView(buffer.buffer);
-    const pollCount = view.getUint8(0); // Number of polls
-  
-    console.log('Poll Count',pollCount);
-    // Assuming poll hash is 32 bytes long (adjust as needed)
-    const pollSize = 32 + 4 + 1; // hash (32 bytes) + price (4 bytes) + isForSale (1 byte)
-  
-    const expectedSize = 1 + pollCount * pollSize;
-  
-    if (buffer.length < expectedSize) {
-      console.error(`Buffer size ${buffer.length} is less than expected ${expectedSize}.`);
-      return [];
-    }
-  
-    const polls: Poll[] = [];
-    let offset = 1; // Start after pollCount
-  
-    for (let i = 0; i < pollCount; i++) {
-      if (offset + pollSize > buffer.length) {
-        console.warn(`Not enough data for poll ${i + 1}. Remaining buffer too small.`);
-        break;
-      }
-  
-      try {
-        // Extract poll hash as a Buffer
-        const pollHashBuffer = buffer.slice(offset, offset + 32);
-  
-        // Convert poll hash to Base58 string
-        const pollHash = bs58.encode(pollHashBuffer);
-  
-        offset += 32;
-  
-        const price = view.getUint32(offset, true); // Read price (4 bytes, little-endian)
-        offset += 4;
-  
-        const isForSale = buffer[offset] === 1; // Read isForSale as 1 (true) or 0 (false)
-        offset += 1;
-  
-        polls.push({
-          poll_hash: pollHash,
-          price,
-          isForSale,
-        });
-      } catch (error) {
-        console.error(`Error decoding poll ${i + 1}:`, error);
-        break;
-      }
-    }
-  
-    return polls;
-  };
-  
-  
-  
-
-  const buyPoll = (pollHash: string) => {
-    alert(`Buying poll with hash: ${pollHash}`);
+  const buyPoll = (pollHash: Uint8Array) => {
+    alert(`Buying poll with hash: ${bs58.encode(pollHash)}`);
   };
 
   return (
@@ -113,27 +124,37 @@ const MarketplaceFeature = () => {
 
                 <div className="poll-list">
                   {loadingPolls ? (
-                    <p>Loading...</p>
+                    <div className="spinner">Loading...</div>
                   ) : (
                     polls.map((poll, index) => (
                       <div className="poll-item" key={index}>
-                        <p>
-                          <strong>ID:</strong> {poll.poll_hash}
+                        <p className="smallitalics">
+                          <strong>ID:</strong> {bs58.encode(poll.pollHash)}
                         </p>
-                        <p>
-                          <strong>Price:</strong> {poll.price} SOL
+                                        
+                        <p className="smallitalics">
+                          <strong>Owner:</strong> {poll.owner.toBase58()}
                         </p>
+                        <p><strong>Price:</strong> {poll.price} SOL</p>  
                         <p>
-                          <strong>For Sale:</strong> {poll.isForSale ? 'Yes' : 'No'}
+                          <strong>For Sale:</strong> {poll.isForSale ? "Yes" : "No"}
                         </p>
+                        <p><strong>Analytics Count:</strong> {poll.analyticsCount.toString()}</p>
+
                         {poll.isForSale ? (
-                          <button className='button' onClick={() => buyPoll(poll.poll_hash)}>Buy Now</button>
+                          <button
+                            className="button"
+                            onClick={() => buyPoll(poll.pollHash)}
+                          >
+                            Buy Now
+                          </button>
                         ) : (
                           <span className="step-label">Sold</span>
                         )}
                       </div>
                     ))
                   )}
+                  {error && <p style={{ color: 'red' }}>{error}</p>}
                 </div>
               </div>
             </div>

@@ -93,18 +93,20 @@ export default function SurveyBuilderWizard() {
         const instructionType = Buffer.from([0]); // Instruction type "create poll"
         const pollHashBytes = Buffer.from(hash, 'hex'); // 32-byte SHA-256 hash
 
+        // Convert price (SOL) to lamports (1 SOL = 1e9 lamports)
+        const priceInLamports = BigInt(formData.price) * BigInt(1e9); // Convert SOL to lamports
         const price = Buffer.alloc(8); // 8-byte price (UInt64)
-        price.writeBigUInt64LE(BigInt(formData.price), 0); // Encode as UInt64 little-endian
+        price.writeBigUInt64LE(priceInLamports, 0); // Encode as UInt64 little-endian
+
+        console.log(priceInLamports, price);
 
         const instructionData = Buffer.concat([instructionType, pollHashBytes, price]);
 
-        console.log('instructionData length:', instructionData.length, instructionData); // Ensure it's 41 bytes
-
+        console.log('instructionData length:', instructionData.length, instructionData);
         console.log('Instruction type:', instructionType);
-console.log('Poll Hash:', pollHashBytes);
-console.log('Price:', price);
-console.log('Full Instruction Data:', instructionData);
-
+        console.log('Poll Hash:', pollHashBytes);
+        console.log('Price:', price);
+        console.log('Full Instruction Data:', instructionData);
 
         // Step 3: Create rent-exempt poll account
         const space = 77; // Replace with your program's data size
@@ -117,11 +119,10 @@ console.log('Full Instruction Data:', instructionData);
             programId,
             data: instructionData,
             keys: [
-              { pubkey: publicKey, isSigner: true, isWritable: true }, // Payer (sender)
-              { pubkey: pollAccount.publicKey, isSigner: false, isWritable: true }, // Poll account
-              { pubkey: SYSVAR_RENT_PUBKEY, isSigner: false, isWritable: false }, // Rent sysvar
-          ]
-          ,
+                { pubkey: publicKey, isSigner: true, isWritable: true }, // Payer (sender)
+                { pubkey: pollAccount.publicKey, isSigner: false, isWritable: true }, // Poll account
+                { pubkey: SYSVAR_RENT_PUBKEY, isSigner: false, isWritable: false }, // Rent sysvar
+            ]
         });
 
         // Step 5: Create and send transaction
@@ -152,7 +153,6 @@ console.log('Full Instruction Data:', instructionData);
         setLoading(false);
     }
 };
-
 
   const nextStep = () => setStep((prev) => prev + 1);
   const prevStep = () => setStep((prev) => prev - 1);
