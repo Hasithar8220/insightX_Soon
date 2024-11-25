@@ -3,6 +3,10 @@ import {ClusterProvider} from '@/components/cluster/cluster-data-access'
 import {SolanaProvider} from '@/components/solana/solana-provider'
 import {UiLayout} from '@/components/ui/ui-layout'
 import {ReactQueryProvider} from './react-query-provider'
+import { ToastContainer } from 'react-toastify';
+// In your main component or App component
+
+
 
 export const metadata = {
   title: 'template-next-tailwind-counter',
@@ -28,6 +32,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </SolanaProvider>
           </ClusterProvider>
         </ReactQueryProvider>
+        <ToastContainer />
       </body>
     </html>
   )

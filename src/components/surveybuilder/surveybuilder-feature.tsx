@@ -270,11 +270,11 @@ export default function SurveyBuilderWizard() {
             </div>
           )}
       
-      {formData.publicLink && (
+      {/* {formData.publicLink && (
             <div className="wizard-info">
               <p><strong>transaction link: </strong>{formData.transactionLink}</p>
             </div>
-          )}
+          )} */}
 
           <div className="wizard-footer">
             <button className="button" onClick={prevStep}>
