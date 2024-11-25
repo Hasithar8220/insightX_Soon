@@ -119,7 +119,7 @@ const MarketplaceFeature = () => {
             <div className="row">
               <div className="col-12">
                 <header className="first major">
-                  <h2>Discover Key Business Insights for Growth</h2>
+                  <h2 className="text-5xl font-bold mt-20">Discover Key Business Insights for Growth</h2>
                 </header>
 
                 <div className="poll-list">
