@@ -1,4 +1,6 @@
 "use client";
+import { toast } from 'react-toastify'; // Import toast
+import 'react-toastify/dist/ReactToastify.css'; // Import CSS for toastify
 import { useState, ChangeEvent } from 'react';
 import CryptoJS from "crypto-js";
 import { useWallet } from '@solana/wallet-adapter-react';
@@ -19,6 +21,7 @@ export default function SurveyBuilderWizard() {
     audience: string;
     price: string;
     publicLink: string;
+    transactionLink: string;
     pollHash: string;
   }>({
     topic: '',
@@ -29,6 +32,7 @@ export default function SurveyBuilderWizard() {
     audience: '',
     price: '',
     publicLink: '',
+    transactionLink: '',
     pollHash: ''
   });
 
@@ -53,9 +57,9 @@ export default function SurveyBuilderWizard() {
           objective: formData.objective,
         }),
       });
-
+  
       const data = await response.json();
-      if (data.success) {
+      if (data.success && data.poll?.question && data.poll?.Options?.length > 0) {
         setFormData((prev) => ({
           ...prev,
           pollQuestion: data.poll.question,
@@ -63,10 +67,11 @@ export default function SurveyBuilderWizard() {
         }));
         nextStep(); // Move to Step 2 after poll generation
       } else {
-        alert('Error generating poll. Please try again.');
+        toast.error('Error generating poll. Please try again.');
       }
     } catch (error) {
       console.error('Error:', error);
+      toast.error('Something went wrong. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -75,84 +80,80 @@ export default function SurveyBuilderWizard() {
  
   const savePoll = async () => {
     setLoading(true);
-
+  
     try {
-        if (!publicKey) {
-            alert("Please connect your wallet");
-            return;
-        }
-
-        const connection = new Connection('https://rpc.testnet.soo.network/rpc');
-        const programId = new PublicKey('75RE6pzbiFtf7a4Yo5KL96PFMFCVF39AVmhzQdS2H6qm');
-
-        // Step 1: Hash the poll data
-        const pollString = JSON.stringify(formData);
-        const hash = CryptoJS.SHA256(pollString).toString(CryptoJS.enc.Hex);
-
-        // Step 2: Prepare instruction data
-        const instructionType = Buffer.from([0]); // Instruction type "create poll"
-        const pollHashBytes = Buffer.from(hash, 'hex'); // 32-byte SHA-256 hash
-
-        // Convert price (SOL) to lamports (1 SOL = 1e9 lamports)
-        const priceInLamports = BigInt(formData.price) * BigInt(1e9); // Convert SOL to lamports
-        const price = Buffer.alloc(8); // 8-byte price (UInt64)
-        price.writeBigUInt64LE(priceInLamports, 0); // Encode as UInt64 little-endian
-
-        console.log(priceInLamports, price);
-
-        const instructionData = Buffer.concat([instructionType, pollHashBytes, price]);
-
-        console.log('instructionData length:', instructionData.length, instructionData);
-        console.log('Instruction type:', instructionType);
-        console.log('Poll Hash:', pollHashBytes);
-        console.log('Price:', price);
-        console.log('Full Instruction Data:', instructionData);
-
-        // Step 3: Create rent-exempt poll account
-        const space = 77; // Replace with your program's data size
-        const rentExemptLamports = await connection.getMinimumBalanceForRentExemption(space);
-
-        const pollAccount = Keypair.generate(); // Generate poll account keypair
-
-        // Step 4: Create transaction instruction
-        const instruction = new TransactionInstruction({
-            programId,
-            data: instructionData,
-            keys: [
-                { pubkey: publicKey, isSigner: true, isWritable: true }, // Payer (sender)
-                { pubkey: pollAccount.publicKey, isSigner: false, isWritable: true }, // Poll account
-                { pubkey: SYSVAR_RENT_PUBKEY, isSigner: false, isWritable: false }, // Rent sysvar
-            ]
-        });
-
-        // Step 5: Create and send transaction
-        const transaction = new Transaction().add(
-            SystemProgram.createAccount({
-                fromPubkey: publicKey,
-                newAccountPubkey: pollAccount.publicKey,
-                lamports: rentExemptLamports,
-                space: space,
-                programId,
-            }),
-            instruction
-        );
-
-        const signature = await sendTransaction(transaction, connection, { signers: [pollAccount] });
-        await connection.confirmTransaction(signature, 'processed');
-
-        console.log('Transaction Signature:', signature);
-
-        const publicLink = `https://insightx.live/polls?id=${hash}`;
-        formData.publicLink = publicLink;
-
-        alert("Poll successfully submitted!");
+      if (!publicKey) {
+        toast.error("Please connect your wallet");
+        return;
+      }
+  
+      const connection = new Connection('https://rpc.testnet.soo.network/rpc');
+      const programId = new PublicKey('75RE6pzbiFtf7a4Yo5KL96PFMFCVF39AVmhzQdS2H6qm');
+  
+      // Hash the poll data
+      const pollString = JSON.stringify(formData);
+      const hash = CryptoJS.SHA256(pollString).toString(CryptoJS.enc.Hex);
+  
+      const instructionType = Buffer.from([0]); // "create poll" instruction
+      const pollHashBytes = Buffer.from(hash, 'hex'); // 32-byte SHA-256 hash
+      const priceInLamports = BigInt(formData.price) * BigInt(1e9); // Convert SOL to lamports
+      const price = Buffer.alloc(8);
+      price.writeBigUInt64LE(priceInLamports, 0);
+  
+      const instructionData = Buffer.concat([instructionType, pollHashBytes, price]);
+  
+      const space = 77; // Poll account space
+      const rentExemptLamports = await connection.getMinimumBalanceForRentExemption(space);
+  
+      const pollAccount = Keypair.generate(); // Generate poll account keypair
+  
+      // Create transaction instruction
+      const instruction = new TransactionInstruction({
+        programId,
+        data: instructionData,
+        keys: [
+          { pubkey: publicKey, isSigner: true, isWritable: true },
+          { pubkey: pollAccount.publicKey, isSigner: false, isWritable: true },
+          { pubkey: SYSVAR_RENT_PUBKEY, isSigner: false, isWritable: false },
+        ]
+      });
+  
+      // Create and send transaction
+      const transaction = new Transaction().add(
+        SystemProgram.createAccount({
+          fromPubkey: publicKey,
+          newAccountPubkey: pollAccount.publicKey,
+          lamports: rentExemptLamports,
+          space: space,
+          programId,
+        }),
+        instruction
+      );
+  
+      const signature = await sendTransaction(transaction, connection, { signers: [pollAccount] });
+      await connection.confirmTransaction(signature, 'processed');
+  
+      console.log('Transaction Signature:', signature);
+  
+      const transactionLink = `https://explorer.testnet.soo.network/tx/${signature}`;
+      const publicLink = `https://insightx.live/polls?id=${hash}`;
+      formData.publicLink = publicLink;
+      formData.transactionLink = transactionLink;
+  
+      // Show success toast with clickable transaction link
+      toast.success(
+        <div>
+          Poll successfully submitted! 
+          <a href={transactionLink} target="_blank" rel="noopener noreferrer" style={{ color: '#4caf50' }}>View Transaction</a>
+        </div>
+      );
     } catch (error) {
-        console.error("Error submitting poll:", error);
-        alert("An error occurred. Please try again.");
+      console.error("Error submitting poll:", error);
+      toast.error("An error occurred. Please try again.");
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
-};
+  };
 
   const nextStep = () => setStep((prev) => prev + 1);
   const prevStep = () => setStep((prev) => prev - 1);
@@ -210,7 +211,7 @@ export default function SurveyBuilderWizard() {
       )}
       {step === 2 && (
         <div className="wizard-steps active">
-          <h2>Step 2: Poll Details. Copy public url</h2>
+          <h2>Step 2: Poll Details - Generated from openAI - GPT3.5</h2>
           <label>Poll Question</label>
           <p>
   {formData.pollQuestion}
@@ -265,10 +266,16 @@ export default function SurveyBuilderWizard() {
           
           {formData.publicLink && (
             <div className="wizard-info">
-              <p>{formData.publicLink}</p>
+              <p><strong>public link: </strong>{formData.publicLink}</p>
             </div>
           )}
       
+      {formData.publicLink && (
+            <div className="wizard-info">
+              <p><strong>transaction link: </strong>{formData.transactionLink}</p>
+            </div>
+          )}
+
           <div className="wizard-footer">
             <button className="button" onClick={prevStep}>
               Back
