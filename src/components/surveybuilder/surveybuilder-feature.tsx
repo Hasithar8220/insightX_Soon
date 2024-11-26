@@ -80,80 +80,83 @@ export default function SurveyBuilderWizard() {
  
   const savePoll = async () => {
     setLoading(true);
-  
+
     try {
-      if (!publicKey) {
-        toast.error("Please connect your wallet");
-        return;
-      }
-  
-      const connection = new Connection('https://rpc.testnet.soo.network/rpc');
-      const programId = new PublicKey('75RE6pzbiFtf7a4Yo5KL96PFMFCVF39AVmhzQdS2H6qm');
-  
-      // Hash the poll data
-      const pollString = JSON.stringify(formData);
-      const hash = CryptoJS.SHA256(pollString).toString(CryptoJS.enc.Hex);
-  
-      const instructionType = Buffer.from([0]); // "create poll" instruction
-      const pollHashBytes = Buffer.from(hash, 'hex'); // 32-byte SHA-256 hash
-      const priceInLamports = BigInt(formData.price) * BigInt(1e9); // Convert SOL to lamports
-      const price = Buffer.alloc(8);
-      price.writeBigUInt64LE(priceInLamports, 0);
-  
-      const instructionData = Buffer.concat([instructionType, pollHashBytes, price]);
-  
-      const space = 77; // Poll account space
-      const rentExemptLamports = await connection.getMinimumBalanceForRentExemption(space);
-  
-      const pollAccount = Keypair.generate(); // Generate poll account keypair
-  
-      // Create transaction instruction
-      const instruction = new TransactionInstruction({
-        programId,
-        data: instructionData,
-        keys: [
-          { pubkey: publicKey, isSigner: true, isWritable: true },
-          { pubkey: pollAccount.publicKey, isSigner: false, isWritable: true },
-          { pubkey: SYSVAR_RENT_PUBKEY, isSigner: false, isWritable: false },
-        ]
-      });
-  
-      // Create and send transaction
-      const transaction = new Transaction().add(
-        SystemProgram.createAccount({
-          fromPubkey: publicKey,
-          newAccountPubkey: pollAccount.publicKey,
-          lamports: rentExemptLamports,
-          space: space,
-          programId,
-        }),
-        instruction
-      );
-  
-      const signature = await sendTransaction(transaction, connection, { signers: [pollAccount] });
-      await connection.confirmTransaction(signature, 'processed');
-  
-      console.log('Transaction Signature:', signature);
-  
-      const transactionLink = `https://explorer.testnet.soo.network/tx/${signature}`;
-      const publicLink = `https://insightx.live/polls?id=${hash}`;
-      formData.publicLink = publicLink;
-      formData.transactionLink = transactionLink;
-  
-      // Show success toast with clickable transaction link
-      toast.success(
-        <div>
-          Poll successfully submitted! 
-          <a href={transactionLink} target="_blank" rel="noopener noreferrer" style={{ color: '#4caf50' }}>View Transaction</a>
-        </div>
-      );
+        if (!publicKey) {
+            toast.error("Please connect your wallet");
+            return;
+        }
+
+        const connection = new Connection('https://rpc.testnet.soo.network/rpc');
+        const programId = new PublicKey('75RE6pzbiFtf7a4Yo5KL96PFMFCVF39AVmhzQdS2H6qm');
+
+        // Hash the poll data
+        const pollString = JSON.stringify(formData);
+        const hash = CryptoJS.SHA256(pollString).toString(CryptoJS.enc.Hex);
+
+        const instructionType = Buffer.from([0]); // "create poll" instruction
+        const pollHashBytes = Buffer.from(hash, 'hex'); // 32-byte SHA-256 hash
+
+        // Ensure price is converted to an integer in lamports
+        const lamports = Math.floor(Number(formData.price) * 1e9); // Convert SOL to lamports
+        const priceInLamports = BigInt(lamports); // Ensure the value is compatible with BigInt
+        const price = Buffer.alloc(8);
+        price.writeBigUInt64LE(priceInLamports, 0);
+
+        const instructionData = Buffer.concat([instructionType, pollHashBytes, price]);
+
+        const space = 77; // Poll account space
+        const rentExemptLamports = await connection.getMinimumBalanceForRentExemption(space);
+
+        const pollAccount = Keypair.generate(); // Generate poll account keypair
+
+        // Create transaction instruction
+        const instruction = new TransactionInstruction({
+            programId,
+            data: instructionData,
+            keys: [
+                { pubkey: publicKey, isSigner: true, isWritable: true },
+                { pubkey: pollAccount.publicKey, isSigner: false, isWritable: true },
+                { pubkey: SYSVAR_RENT_PUBKEY, isSigner: false, isWritable: false },
+            ]
+        });
+
+        // Create and send transaction
+        const transaction = new Transaction().add(
+            SystemProgram.createAccount({
+                fromPubkey: publicKey,
+                newAccountPubkey: pollAccount.publicKey,
+                lamports: rentExemptLamports,
+                space: space,
+                programId,
+            }),
+            instruction
+        );
+
+        const signature = await sendTransaction(transaction, connection, { signers: [pollAccount] });
+        await connection.confirmTransaction(signature, 'processed');
+
+        console.log('Transaction Signature:', signature);
+
+        const transactionLink = `https://explorer.testnet.soo.network/tx/${signature}`;
+        const publicLink = `https://insightx.live/polls?id=${hash}`;
+        formData.publicLink = publicLink;
+        formData.transactionLink = transactionLink;
+
+        // Show success toast with clickable transaction link
+        toast.success(
+            <div>
+                Poll successfully submitted! 
+                <a href={transactionLink} target="_blank" rel="noopener noreferrer" style={{ color: '#4caf50' }}>View Transaction</a>
+            </div>
+        );
     } catch (error) {
-      console.error("Error submitting poll:", error);
-      toast.error("An error occurred. Please try again.");
+        console.error("Error submitting poll:", error);
+        toast.error("An error occurred. Please try again.");
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
-  };
+};
 
   const nextStep = () => setStep((prev) => prev + 1);
   const prevStep = () => setStep((prev) => prev - 1);

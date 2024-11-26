@@ -12,33 +12,56 @@ const links: { label: string; href: string }[] = [
 
 export default function DashboardFeature() {
   return (
-    <div>
+    <div className="bg-[#030712] min-h-screen text-white">
       <AppHero
-        title="Create & Monetize Value-driven insights!"
+        title="Create & Monetize Value-driven Insights!"
         subtitle="An innovative way to support Data Driven Economy with SOON network on Solana"
       />
+      <div className="flex justify-center items-center py-8">
+        <div className="flex gap-8 items-center">
+          {/* OpenAI Logo */}
+          <div className="logo-container">
+            <img
+              className="h-12 md:h-16 filter invert contrast-125"
+              alt="OpenAI Logo"
+              src="/openai.webp"
+            />
+          </div>
+          {/* TiDB Logo */}
+          <div className="logo-container">
+            <img
+              className="h-12 md:h-16 filter invert contrast-125"
+              alt="TiDB Logo"
+              src="/tidb_bg_tp.png"
+            />
+          </div>
+          {/* SOON Network Logo */}
+          <div className="logo-container">
+            <img
+              className="h-12 md:h-16 filter contrast-125"
+              alt="SOON Network Logo"
+              src="/soon.svg"
+            />
+          </div>
+        </div>
+      </div>
       <div className="max-w-xl mx-auto py-6 sm:px-6 lg:px-8 text-center">
         <div className="space-y-2">
           <div className="content-container">
             <div style={{ display: "flex", justifyContent: "center" }}>
               <img
-                style={{ height: "300px", border: "1px solid #eee", padding: "5px" }}
+                style={{
+                  height: "300px",
+                  border: "1px solid #eee",
+                  padding: "5px",
+                }}
                 src="/analytics2.gif"
                 alt="Hero Image"
               />
             </div>
           </div>
-          {/* Uncomment if you want to use the links */}
-          {/* {links.map((link, index) => (
-            <div key={index}>
-              <a href={link.href} className="link" target="_blank" rel="noopener noreferrer">
-                {link.label}
-              </a>
-            </div>
-          ))} */}
         </div>
       </div>
     </div>
   );
 }
-
