@@ -257,11 +257,11 @@ export default function SurveyBuilderWizard() {
             required
           />
           
-          <label>Price</label>
+          <label>Price (SOL)</label>
           <input
             type="number"
             name="price"
-            placeholder="25"
+            placeholder="2"
             value={formData.price}
             onChange={handleChange}
             required
