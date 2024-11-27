@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Connection, PublicKey } from "@solana/web3.js";
+import { SYSVAR_RENT_PUBKEY } from '@solana/web3.js'; // Make sure this import exists at the top of your file
+import { Connection, PublicKey, Transaction, TransactionInstruction, Keypair, SystemProgram } from '@solana/web3.js';
 import { useWallet } from "@solana/wallet-adapter-react";
 import * as bs58 from "bs58";
 
@@ -28,21 +29,20 @@ function deserializePoll(data: Uint8Array): Poll | null {
   const analyticsCountBuffer = Buffer.from(data.slice(73, 77));
   const analyticsCount = BigInt('0x' + analyticsCountBuffer.reverse().toString('hex')); // Reverse the buffer for little-endian
 
-  console.log('Price lamports:', priceLamports); // Log price in lamports
+  console.log('Price lamports:', priceLamports);
   console.log('Analytics count:', analyticsCount);
 
   const isForSale = data[72] !== 0;
 
-  // Convert lamports to SOL (using BigInt)
-  const priceSOLBigInt = priceLamports / BigInt(1e9);
-  const priceSOL = parseFloat(priceSOLBigInt.toString());
+  // Convert lamports to SOL with precision
+  const priceSOL = Number(priceLamports) / 1e9;
 
   console.log('Price in SOL:', priceSOL);
 
   return {
     pollHash,
     owner,
-    price: parseFloat(priceSOL.toFixed(2)), // Round to 2 decimals for display
+    price: parseFloat(priceSOL.toFixed(9)), // Format to display up to 9 decimal places
     isForSale,
     analyticsCount: Number(analyticsCount),
   };
@@ -51,22 +51,17 @@ function deserializePoll(data: Uint8Array): Poll | null {
 
 
 
+
 // Fetch polls for sale from accounts
 async function getPollsForSale(
   connection: Connection,
-  programId: PublicKey,
-  userPublicKey: PublicKey
+  programId: PublicKey
 ): Promise<Poll[]> {
-  const accounts = await connection.getProgramAccounts(programId, {
-    filters: [
-      { memcmp: { offset: 32, bytes: userPublicKey.toBase58() } }, // Owner filter
-    ],
-  });
+  const accounts = await connection.getProgramAccounts(programId);
 
   const polls: Poll[] = [];
   for (const account of accounts) {
     const poll = deserializePoll(account.account.data);
-    console.log(poll);
     if (poll && poll.isForSale) {
       polls.push(poll);
     }
@@ -75,6 +70,7 @@ async function getPollsForSale(
   console.log(polls);
   return polls;
 }
+
 
 const MarketplaceFeature = () => {
   const { publicKey } = useWallet(); // Solana wallet adapter
@@ -94,7 +90,7 @@ const MarketplaceFeature = () => {
 
     const fetchPolls = async () => {
       try {
-        const fetchedPolls = await getPollsForSale(connection, programId, publicKey);
+        const fetchedPolls = await getPollsForSale(connection, programId);
         setPolls(fetchedPolls);
       } catch (error) {
         console.error("Error fetching polls:", error);
@@ -107,10 +103,71 @@ const MarketplaceFeature = () => {
     fetchPolls();
   }, [publicKey]);
 
-  const buyPoll = (pollHash: Uint8Array) => {
-    alert(`Buying poll with hash: ${bs58.encode(pollHash)}`);
-  };
 
+
+
+  const buyPoll = async (
+  pollHash: Uint8Array,
+  publicKey: PublicKey,
+  signTransaction: (transaction: Transaction) => Promise<Transaction>
+) => {
+  try {
+    const connection = new Connection("https://rpc.testnet.soo.network/rpc");
+    const programId = new PublicKey("75RE6pzbiFtf7a4Yo5KL96PFMFCVF39AVmhzQdS2H6qm");
+
+    const poll = polls.find((p) => bs58.encode(p.pollHash) === bs58.encode(pollHash));
+    if (!poll) {
+      alert("Poll not found.");
+      return;
+    }
+
+    if (!poll.isForSale) {
+      alert("This poll is not for sale.");
+      return;
+    }
+
+    const transaction = new Transaction();
+    transaction.feePayer = publicKey; // Set the fee payer
+
+    transaction.add(
+      SystemProgram.transfer({
+        fromPubkey: publicKey,
+        toPubkey: poll.owner,
+        lamports: BigInt(poll.price * 1e9),
+      })
+    );
+
+    const pollUpdateInstruction = new TransactionInstruction({
+      keys: [
+        { pubkey: publicKey, isSigner: true, isWritable: true },
+        { pubkey: poll.owner, isSigner: false, isWritable: true },
+      ],
+      programId,
+      data: Buffer.from(pollHash),
+    });
+
+    transaction.add(pollUpdateInstruction);
+
+    // Fetch the latest blockhash
+    const { blockhash } = await connection.getLatestBlockhash();
+    transaction.recentBlockhash = blockhash;
+
+    const signedTransaction = await signTransaction(transaction);
+    const txId = await connection.sendRawTransaction(signedTransaction.serialize());
+    await connection.confirmTransaction(txId);
+
+    alert(`Transaction successful! Transaction ID: ${txId}`);
+  } catch (error) {
+    console.error("Error buying poll:", error);
+    alert("Failed to complete the transaction. Please try again.");
+  }
+};
+
+  
+  
+  
+  
+  const {  signTransaction } = useWallet();
   return (
     <div id="main-wrapper">
       <div className="wrapper style1">
@@ -142,12 +199,19 @@ const MarketplaceFeature = () => {
                         <p><strong>Analytics Count:</strong> {poll.analyticsCount.toString()}</p>
 
                         {poll.isForSale ? (
-                          <button
-                            className="button"
-                            onClick={() => buyPoll(poll.pollHash)}
-                          >
-                            Buy Now
-                          </button>
+                        <button
+                        className="button"
+                        onClick={() => {
+                          if (publicKey && signTransaction) {
+                            buyPoll(poll.pollHash, publicKey, signTransaction);
+                          } else {
+                            alert("Please connect your wallet.");
+                          }
+                        }}
+                      >
+                        Buy Now
+                      </button>
+                      
                         ) : (
                           <span className="step-label">Sold</span>
                         )}
