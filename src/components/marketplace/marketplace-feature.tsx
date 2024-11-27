@@ -1,5 +1,6 @@
 "use client";
-
+import { toast } from 'react-toastify'; // Import toast
+import 'react-toastify/dist/ReactToastify.css'; // Import CSS for toastify
 import React, { useState, useEffect } from "react";
 import { SYSVAR_RENT_PUBKEY } from '@solana/web3.js'; // Make sure this import exists at the top of your file
 import { Connection, PublicKey, Transaction, TransactionInstruction, Keypair, SystemProgram } from '@solana/web3.js';
@@ -106,65 +107,66 @@ const MarketplaceFeature = () => {
 
 
 
-  const buyPoll = async (
+
+
+const buyPoll = async (
   pollHash: Uint8Array,
   publicKey: PublicKey,
   signTransaction: (transaction: Transaction) => Promise<Transaction>
 ) => {
   try {
     const connection = new Connection("https://rpc.testnet.soo.network/rpc");
-    const programId = new PublicKey("75RE6pzbiFtf7a4Yo5KL96PFMFCVF39AVmhzQdS2H6qm");
 
     const poll = polls.find((p) => bs58.encode(p.pollHash) === bs58.encode(pollHash));
     if (!poll) {
-      alert("Poll not found.");
+      toast.error("Poll not found.");
       return;
     }
 
     if (!poll.isForSale) {
-      alert("This poll is not for sale.");
+      toast.warn("This poll is not for sale.");
       return;
     }
 
+    // Create a transaction to transfer funds
     const transaction = new Transaction();
-    transaction.feePayer = publicKey; // Set the fee payer
+    transaction.feePayer = publicKey;
 
     transaction.add(
       SystemProgram.transfer({
         fromPubkey: publicKey,
         toPubkey: poll.owner,
-        lamports: BigInt(poll.price * 1e9),
+        lamports: BigInt(poll.price * 1e9), // Convert price to lamports
       })
     );
-
-    const pollUpdateInstruction = new TransactionInstruction({
-      keys: [
-        { pubkey: publicKey, isSigner: true, isWritable: true },
-        { pubkey: poll.owner, isSigner: false, isWritable: true },
-      ],
-      programId,
-      data: Buffer.from(pollHash),
-    });
-
-    transaction.add(pollUpdateInstruction);
 
     // Fetch the latest blockhash
     const { blockhash } = await connection.getLatestBlockhash();
     transaction.recentBlockhash = blockhash;
 
+    // Sign and send the transaction
     const signedTransaction = await signTransaction(transaction);
     const txId = await connection.sendRawTransaction(signedTransaction.serialize());
     await connection.confirmTransaction(txId);
 
-    alert(`Transaction successful! Transaction ID: ${txId}`);
+    // Show success toast with clickable transaction link
+    const transactionLink = `https://explorer.testnet.soo.network/tx/${txId}`;
+    toast.success(
+      <div>
+        Transaction successful!{" "}
+        <a href={transactionLink} target="_blank" rel="noopener noreferrer" style={{ color: '#4caf50' }}>
+          View Transaction
+        </a>
+      </div>
+    );
   } catch (error) {
     console.error("Error buying poll:", error);
-    alert("Failed to complete the transaction. Please try again.");
+    toast.error("Failed to complete the transaction. Please try again.");
   }
 };
 
   
-  
+
   
   
   const {  signTransaction } = useWallet();
