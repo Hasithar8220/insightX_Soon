@@ -9,6 +9,7 @@ import * as bs58 from "bs58";
 
 // Define the Poll structure
 interface Poll {
+  topic: string;
   pollHash: Uint8Array;
   owner: PublicKey;
   price: number;
@@ -40,13 +41,18 @@ function deserializePoll(data: Uint8Array): Poll | null {
 
   console.log('Price in SOL:', priceSOL);
 
+  const topic ="";
+
   return {
+    topic,
     pollHash,
     owner,
     price: parseFloat(priceSOL.toFixed(9)), // Format to display up to 9 decimal places
     isForSale,
     analyticsCount: Number(analyticsCount),
   };
+
+
 }
 
 
@@ -63,7 +69,9 @@ async function getPollsForSale(
   const polls: Poll[] = [];
   for (const account of accounts) {
     const poll = deserializePoll(account.account.data);
+    
     if (poll && poll.isForSale) {
+      poll.topic = "Your poll topic here"; // Modify to reflect how you're storing/retrieving this data
       polls.push(poll);
     }
   }
@@ -77,6 +85,7 @@ const MarketplaceFeature = () => {
   const { publicKey } = useWallet(); // Solana wallet adapter
   const [polls, setPolls] = useState<Poll[]>([]);
   const [loadingPolls, setLoadingPolls] = useState(true);
+  const [searchQuery, setSearchQuery] = useState<string>('');
   const [error, setError] = useState<string | null>(null); // Error state
 
   useEffect(() => {
@@ -177,9 +186,18 @@ const buyPoll = async (
           <section className="container box feature1">
             <div className="row">
               <div className="col-12">
-                <header className="first major">
+                <header className="first major mp_header">
                   <h2 className="text-5xl font-bold mt-20">Discover Key Business Insights for Growth</h2>
                 </header>
+
+                {/* <div className="search-bar">
+  <input
+    type="text"
+    placeholder="Search for a poll by topic"
+    value={searchQuery}
+    onChange={(e) => setSearchQuery(e.target.value)}
+  />
+</div> */}
 
                 <div className="poll-list">
                   {loadingPolls ? (
@@ -187,37 +205,37 @@ const buyPoll = async (
                   ) : (
                     polls.map((poll, index) => (
                       <div className="poll-item" key={index}>
+                      <div className="poll-header mb-10">
+                        <p>
+                          <strong>Topic:</strong> {poll.topic}
+                        </p>
+                        <p><strong>Price:</strong> {poll.price} SOL</p>
+                      </div>
+                      <div className="poll-footer mb-10">
                         <p className="smallitalics">
                           <strong>ID:</strong> {bs58.encode(poll.pollHash)}
                         </p>
-                                        
                         <p className="smallitalics">
                           <strong>Owner:</strong> {poll.owner.toBase58()}
                         </p>
-                        <p><strong>Price:</strong> {poll.price} SOL</p>  
-                        <p>
-                          <strong>For Sale:</strong> {poll.isForSale ? "Yes" : "No"}
-                        </p>
-                        <p><strong>Analytics Count:</strong> {poll.analyticsCount.toString()}</p>
-
-                        {poll.isForSale ? (
-                        <button
-                        className="button"
-                        onClick={() => {
-                          if (publicKey && signTransaction) {
-                            buyPoll(poll.pollHash, publicKey, signTransaction);
-                          } else {
-                            alert("Please connect your wallet.");
-                          }
-                        }}
-                      >
-                        Buy Now
-                      </button>
-                      
-                        ) : (
-                          <span className="step-label">Sold</span>
-                        )}
                       </div>
+                      {poll.isForSale ? (
+                        <button
+                          className="button"
+                          onClick={() => {
+                            if (publicKey && signTransaction) {
+                              buyPoll(poll.pollHash, publicKey, signTransaction);
+                            } else {
+                              alert("Please connect your wallet.");
+                            }
+                          }}
+                        >
+                          Buy Now
+                        </button>
+                      ) : (
+                        <span className="step-label">Sold</span>
+                      )}
+                    </div>
                     ))
                   )}
                   {error && <p style={{ color: 'red' }}>{error}</p>}
