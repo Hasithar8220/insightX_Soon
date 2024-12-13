@@ -71,7 +71,7 @@ async function getPollsForSale(
     const poll = deserializePoll(account.account.data);
     
     if (poll && poll.isForSale) {
-      poll.topic = "Your poll topic here"; // Modify to reflect how you're storing/retrieving this data
+      poll.topic = "Work life balance"; // Modify to reflect how you're storing/retrieving this data
       polls.push(poll);
     }
   }
@@ -199,26 +199,25 @@ const buyPoll = async (
   />
 </div> */}
 
-                <div className="poll-list">
+                <div className="poll-list mt-50">
                   {loadingPolls ? (
                     <div className="spinner">Loading...</div>
                   ) : (
                     polls.map((poll, index) => (
                       <div className="poll-item" key={index}>
-                      <div className="poll-header mb-10">
-                        <p>
-                          <strong>Topic:</strong> {poll.topic}
-                        </p>
-                        <p><strong>Price:</strong> {poll.price} SOL</p>
+                      {/* Display topic and price side-by-side */}
+                      <div className="poll-item-details">
+                        <span className="poll-topic">{poll.topic}</span>
+                        <span className="poll-price">{poll.price} SOL</span>
                       </div>
                       <div className="poll-footer mb-10">
-                        <p className="smallitalics">
-                          <strong>ID:</strong> {bs58.encode(poll.pollHash)}
-                        </p>
-                        <p className="smallitalics">
-                          <strong>Owner:</strong> {poll.owner.toBase58()}
-                        </p>
-                      </div>
+    <p className="id-element smallitalics">
+        <strong>ID:</strong> {bs58.encode(poll.pollHash)}
+    </p>
+    <p className="id-element smallitalics">
+        <strong>Owner:</strong> {poll.owner.toBase58()}
+    </p>
+</div>
                       {poll.isForSale ? (
                         <button
                           className="button"

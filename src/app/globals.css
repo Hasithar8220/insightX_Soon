@@ -45,8 +45,19 @@ body {
 .mb-10{
     margin-bottom: 10px !important;
 }
+.mb-40{
+    margin-bottom: 40px !important;
+}
 .mt-10{
     margin-top: 10px !important;
+}
+
+.mt-40{
+    margin-top: 40px !important;
+}
+
+.mt-50{
+    margin-top: 50px !important;
 }
 
 .wizard-container {
@@ -207,7 +218,7 @@ input:focus, textarea:focus {
 /* Individual poll card */
 .poll-item {
     background-color: #1D202A;
-    border: 1px solid #444;
+    border: 1px solid #1F2937;
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     margin: 15px;
@@ -217,6 +228,25 @@ input:focus, textarea:focus {
     /* Ensures a good size on mobile devices */
     transition: transform 0.2s ease-in-out;
 }
+
+.poll-item-details {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  
+  .poll-price {
+    border: 1px solid #2A4E5E; /* Web3-style border */
+    border-radius: 4px;
+    padding: 5px 10px;
+    color: #E1E1E1; /* Light text for readability */
+    background-color: #1F2227; /* Background matching input fields */
+  }
+
+  .poll-topic{
+    color: #fff;
+  }
 
 .poll-item:hover {
     transform: translateY(-5px);
@@ -238,11 +268,11 @@ input:focus, textarea:focus {
 }
 
 .poll-item strong {
-    color: #4B6EF2; /* Web3-style link color */
+    color: #4493b7; /* Web3-style link color */
 }
 
 /* Buy Now button */
-.poll-item button {
+/* .poll-item button {
     background-color: #4B6EF2;
     color: white;
     border: none;
@@ -251,7 +281,7 @@ input:focus, textarea:focus {
     cursor: pointer;
     font-size: 1rem;
     transition: background-color 0.3s ease;
-}
+} */
 
 .poll-item button:disabled {
     background-color: #7A8B99;
@@ -269,7 +299,15 @@ input:focus, textarea:focus {
     color: #B0B6B9;
     border-radius: 4px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
-  }
+    word-wrap: break-word; /* Allows words to be broken when necessary */
+}
+
+.poll-footer .id-element {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: block; /* Optional: ensures it's treated as a block-level element */
+}
 
 /* Responsive design */
 @media (max-width: 768px) {
@@ -342,7 +380,7 @@ input:focus, textarea:focus {
   button.button {
     background: linear-gradient(45deg, #ff4b2b, #ff416c);
     color: white;
-    padding: 12px 20px;
+    padding: 9px 20px;
     font-size: 16px;
     border-radius: 8px;
     border: none;

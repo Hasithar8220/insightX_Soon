@@ -13,7 +13,7 @@ class MySQLService {
       port: 4000,
       ssl: {
         minVersion: 'TLSv1.2',
-        ca: fs.readFileSync('./services/db/cert.pem').toString(),
+        ca: fs.readFileSync('./src/app/services/cert.pem').toString(),
       },
       waitForConnections: true,
       connectionLimit: 30,

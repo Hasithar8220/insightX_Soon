@@ -150,6 +150,21 @@ export default function SurveyBuilderWizard() {
                 <a href={transactionLink} target="_blank" rel="noopener noreferrer" style={{ color: '#4caf50' }}>View Transaction</a>
             </div>
         );
+
+        const response = await fetch('/api/savePoll', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            title: formData.topic,
+            description: formData.objective,
+            pollHash: hash
+          }),
+        });
+    
+        const data = await response.json();
+
     } catch (error) {
         console.error("Error submitting poll:", error);
         toast.error("An error occurred. Please try again.");
@@ -221,7 +236,7 @@ export default function SurveyBuilderWizard() {
 </p>
 
           <label>Poll Options</label>
-          <ul>
+          <ul className='mb-10'>
             {formData.pollOptions.map((option, index) => (
               <li key={index}>{option}</li>
             ))}
