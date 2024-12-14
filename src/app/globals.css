@@ -10,12 +10,17 @@ body {
 }
 
 .md\:h-6{
-    height : 2.5rem !important;
+    height : 2.8rem !important;
+}
+
+.menu{
+    font-size: 1.1rem !important;
 }
 
 .menu li>:not(ul,.menu-title,details,.btn).active, .menu li>:not(ul,.menu-title,details,.btn):active, .menu li>details>summary:active{
     background: linear-gradient(45deg, #0f2027, #203a43, #2c5364) !important;
 }
+
 
 
 .mt-10{

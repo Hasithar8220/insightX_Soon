@@ -10,6 +10,7 @@ import * as bs58 from "bs58";
 // Define the Poll structure
 interface Poll {
   topic: string;
+  title: string;
   pollHash: Uint8Array;
   owner: PublicKey;
   price: number;
@@ -42,9 +43,11 @@ function deserializePoll(data: Uint8Array): Poll | null {
   console.log('Price in SOL:', priceSOL);
 
   const topic ="";
+  const title ="";
 
   return {
     topic,
+    title,
     pollHash,
     owner,
     price: parseFloat(priceSOL.toFixed(9)), // Format to display up to 9 decimal places
@@ -56,6 +59,25 @@ function deserializePoll(data: Uint8Array): Poll | null {
 }
 
 
+async function getPollMetadata(hash: string | undefined):Promise<Poll[]>{
+
+  const response = await fetch('/api/getPoll', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      hash: hash
+    
+    }),
+  });
+
+ 
+  const res= await response.json();
+  const polls: Poll[] = res.poll;
+  return polls;
+
+}
 
 
 
@@ -69,10 +91,20 @@ async function getPollsForSale(
   const polls: Poll[] = [];
   for (const account of accounts) {
     const poll = deserializePoll(account.account.data);
-    
+
+
     if (poll && poll.isForSale) {
-      poll.topic = "Work life balance"; // Modify to reflect how you're storing/retrieving this data
+      //Get metadata from DB
+      const hashstring = bs58.encode(poll.pollHash);
+      console.log(hashstring);
+      const metadata = await getPollMetadata(hashstring);
+      if(metadata && metadata.length > 0){
+      console.log('line-100',metadata);
+      poll.topic= metadata[0].title ;
       polls.push(poll);
+      }
+
+     
     }
   }
 

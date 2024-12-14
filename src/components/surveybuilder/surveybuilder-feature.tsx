@@ -6,6 +6,7 @@ import CryptoJS from "crypto-js";
 import { useWallet } from '@solana/wallet-adapter-react';
 import { SYSVAR_RENT_PUBKEY } from '@solana/web3.js'; // Make sure this import exists at the top of your file
 import { Connection, PublicKey, Transaction, TransactionInstruction, Keypair, SystemProgram } from '@solana/web3.js';
+import * as bs58 from "bs58";    // Base58 library
 
 
 
@@ -97,6 +98,12 @@ export default function SurveyBuilderWizard() {
         const instructionType = Buffer.from([0]); // "create poll" instruction
         const pollHashBytes = Buffer.from(hash, 'hex'); // 32-byte SHA-256 hash
 
+           // Convert to base58
+        const pollHashBase58 = bs58.encode(pollHashBytes);
+        console.log('Base58 Encoded Poll Hash:', pollHashBase58);
+
+        console.log(pollHashBase58);
+
         // Ensure price is converted to an integer in lamports
         const lamports = Math.floor(Number(formData.price) * 1e9); // Convert SOL to lamports
         const priceInLamports = BigInt(lamports); // Ensure the value is compatible with BigInt
@@ -139,7 +146,7 @@ export default function SurveyBuilderWizard() {
         console.log('Transaction Signature:', signature);
 
         const transactionLink = `https://explorer.testnet.soo.network/tx/${signature}`;
-        const publicLink = `https://insightx.live/polls?id=${hash}`;
+        const publicLink = `https://insightx.live/polls?id=${pollHashBase58}`;
         formData.publicLink = publicLink;
         formData.transactionLink = transactionLink;
 
@@ -159,7 +166,7 @@ export default function SurveyBuilderWizard() {
           body: JSON.stringify({
             title: formData.topic,
             description: formData.objective,
-            pollHash: hash
+            pollHash: pollHashBase58
           }),
         });
     
